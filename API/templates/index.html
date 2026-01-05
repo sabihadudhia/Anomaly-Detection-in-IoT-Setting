@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Anomaly Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .result.normal {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        
+        .result.anomaly {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .result-content {
+            margin-bottom: 15px;
+        }
+        
+        .result-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .result-item {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        
+        .result-item strong {
+            display: inline-block;
+            min-width: 140px;
+        }
+        
+        .score-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1> IoT Anomaly Detection</h1>
+        
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="temperature">Temperature (°C)</label>
+                <input type="number" id="temperature" name="temperature" step="0.1" placeholder="Enter temperature" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="humidity">Humidity (%)</label>
+                <input type="number" id="humidity" name="humidity" step="0.1" placeholder="Enter humidity" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="soundVolume">Sound Volume (dB)</label>
+                <input type="number" id="soundVolume" name="soundVolume" step="0.01" placeholder="Enter sound volume" required>
+            </div>
+            
+            <button type="submit">Predict Anomaly</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result" id="result">
+            <div class="result-content">
+                <div class="result-title" id="resultTitle"></div>
+                <div class="result-item">
+                    <strong>Temperature:</strong> <span id="resultTemp"></span>°C
+                </div>
+                <div class="result-item">
+                    <strong>Humidity:</strong> <span id="resultHumidity"></span>%
+                </div>
+                <div class="result-item">
+                    <strong>Sound Volume:</strong> <span id="resultSoundVolume"></span> dB
+                </div>
+                <div class="result-item">
+                    <strong>Anomaly Score:</strong> <span id="resultScore"></span>
+                    <div class="score-bar">
+                        <div class="score-fill" id="scoreFill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('predictionForm');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const result = document.getElementById('result');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const humidity = parseFloat(document.getElementById('humidity').value);
+            const sound_volume = parseFloat(document.getElementById('soundVolume').value);
+            
+            loading.style.display = 'block';
+            error.classList.remove('show');
+            result.classList.remove('show');
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ temperature, humidity, sound_volume })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Prediction failed');
+                }
+                
+                displayResult(data);
+                
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+        
+        function displayResult(data) {
+            const isAnomaly = data.anomaly;
+            const score = data.anomaly_score;
+            const scorePercent = Math.min(Math.abs(score) * 100, 100);
+            
+            document.getElementById('resultTitle').textContent = 
+                isAnomaly ? 'ANOMALY DETECTED' : 'NORMAL';
+            
+            document.getElementById('resultTemp').textContent = data.temperature;
+            document.getElementById('resultHumidity').textContent = data.humidity;
+            document.getElementById('resultSoundVolume').textContent = data.sound_volume;
+            document.getElementById('resultScore').textContent = score.toFixed(4);
+            document.getElementById('scoreFill').style.width = scorePercent + '%';
+            
+            result.classList.remove('normal', 'anomaly');
+            result.classList.add(isAnomaly ? 'anomaly' : 'normal');
+            result.classList.add('show');
+        }
+        
+        function showError(message) {
+            error.textContent = 'Error: ' + message;
+            error.classList.add('show');
+        }
+    </script>
+</body>
+</html>
