@@ -2,7 +2,7 @@
 
 Anomaly detection for industrial IoT sensors using Isolation Forest and Flask REST API.
 
-## Quick Start
+## Basic Run
 
 ```bash
 # Install dependencies
