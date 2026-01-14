@@ -1,24 +1,40 @@
 # IoT Anomaly Detection System
 
-Anomaly detection for industrial IoT sensors using Isolation Forest and Flask REST API.
+## Overview
+Anomaly detection for industrial IoT sensor data using Isolation Forest. The system includes data preprocessing, model training, streaming data simulation, and a REST API for real-time predictions.
 
-## Basic Run
-Install dependencies
+## Features
+- Preprocess IoT telemetry data
+- Train Isolation Forest model for anomaly detection
+- Stream simulated sensor data
+- Provide REST API for real-time predictions
+- Simple web interface to view predictions
+
+## Technologies
+- Python 3.8+
+- scikit-learn (Isolation Forest)
+- Flask
+- pandas, numpy
+
+## Setup / Installation
+1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-Run pipeline (preprocessing, training, streaming)
+
+2. Run the main pipeline (preprocessing, training, streaming):
 ```bash
 python main.py
 ```
-Start API server
-```bash 
+
+3. Start the API server:
+```bash
 python API/api.py
 ```
 
-Access web interface at `http://localhost:5000`
-
-## API Usage
+## Usage
+- Access the web interface at http://localhost:5000
+- Send a POST request to the API to predict anomalies:
 
 ```bash
 curl -X POST http://localhost:5000/predict \
@@ -26,7 +42,7 @@ curl -X POST http://localhost:5000/predict \
   -d '{"temperature": 25.5, "humidity": 60.2, "sound_volume": 0.025}'
 ```
 
-Response:
+## Example API response:
 ```json
 {
   "anomaly": false,
@@ -35,9 +51,8 @@ Response:
 ```
 
 ## Project Structure
-
-```
-├── API/api.py              # Flask REST API
+```bash 
+├── API/api.py
 ├── Model/
 │   ├── data_preprocessing.py
 │   ├── train_model.py
@@ -45,10 +60,3 @@ Response:
 ├── Data/iot_telemetry_data.csv
 └── main.py
 ```
-
-## Technologies
-
-- Python 3.8+
-- scikit-learn (Isolation Forest)
-- Flask
-- pandas, numpy
